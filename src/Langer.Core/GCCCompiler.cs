@@ -6,6 +6,8 @@ namespace Langer.Core
 {
     public class GCCCompliler : LangerCompiler
     {
+        private const int _compileTimeout = 300000;
+
         public GCCCompliler()
         {
             CompilerPath = "gcc";
@@ -27,12 +29,18 @@ namespace Langer.Core
             string sourceFilePath = GenerateSourceFile(sourceFileNameWithoutExt, code);
             string outputFilePath = GetOutputFilePath(sourceFileNameWithoutExt);
 
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            
             Process compilerProcess = GenerateCompilerProcess(sourceFilePath, outputFilePath);
             compilerProcess.Start();
 
             string compileOutput = compilerProcess.StandardOutput.ReadToEnd();
             string errorOutput = compilerProcess.StandardError.ReadToEnd();
-            compilerProcess.WaitForExit();
+            bool isTimeout = !compilerProcess.WaitForExit(_compileTimeout);
+
+            sw.Stop();
+            TimeSpan compileTime = sw.Elapsed;
 
             // The output file will exist only if the compiling succeed.
             bool isSuccess = File.Exists(outputFilePath);
@@ -42,7 +50,9 @@ namespace Langer.Core
                 CompileOutput = compileOutput,
                 ErrorOutput = errorOutput,
                 BinaryFilePath = outputFilePath,
-                IsSuccess = isSuccess
+                IsSuccess = isSuccess,
+                IsTimeout = isTimeout,
+                CompileTime = compileTime
             };
 
             return compileResult;

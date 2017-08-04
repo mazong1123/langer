@@ -27,5 +27,17 @@ namespace Langer.Core
             get;
             set;
         }
+
+        public bool IsTimeout
+        {
+            get;
+            set;
+        }
+
+        public TimeSpan CompileTime
+        {
+            get;
+            set;
+        }
     }
 }
